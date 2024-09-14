@@ -74,13 +74,19 @@ public class BookServiceTest {
     @Test
     @DisplayName("Error - Should throw exception when try to find book by id")
     public void shouldThrowExceptionWhenTryToFindBookById() throws BookNotFoundException {
-        Book book = new Book();
-        book.setId(1L);
-        book.setName("cracking the code interview");
-        book.setCategory(Category.PROGRAMMING);
-        book.setStatus(Status.NOT_STARTED);
-
         when(this.bookRepository.findById(2L)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(BookNotFoundException.class, () -> {
+            this.bookService.getBookById(2L);
+        });
+
+        assertEquals("Book with id " + 2L + " not found in database", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Success - Should delete with success")
+    public void shouldDeleteWithSuccess() {
+        
     }
 
 }

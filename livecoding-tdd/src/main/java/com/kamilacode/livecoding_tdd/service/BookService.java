@@ -1,10 +1,13 @@
 package com.kamilacode.livecoding_tdd.service;
 
 import com.kamilacode.livecoding_tdd.domain.Book;
+import com.kamilacode.livecoding_tdd.exception.BookNotFoundException;
 import com.kamilacode.livecoding_tdd.repository.BookRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BookService {
@@ -21,6 +24,29 @@ public class BookService {
 
     public List<Book> listAllBooks() {
         return this.bookRepository.findAll();
+    }
+
+    public Optional<Book> getBookById(Long id) throws BookNotFoundException {
+        Optional<Book> optionalBook = this.bookRepository.findById(id);
+        if (optionalBook.isEmpty()) {
+            throw new BookNotFoundException(id);
+        }
+
+        return optionalBook;
+    }
+
+    public ResponseEntity<Book> updateBookById(Long id, Book book) {
+        return this.bookRepository.findById(id).map(
+          bookToUpdate -> {
+            bookToUpdate.setName(book.getName());
+            bookToUpdate.setCategory(book.getCategory());
+            bookToUpdate.setStatus(book.getStatus());
+
+            Book updated = this.bookRepository.save(bookToUpdate);
+
+            return ResponseEntity.ok().body(updated);
+          }
+        ).orElse(ResponseEntity.notFound().build());
     }
 
 }
