@@ -37,16 +37,26 @@ public class BookService {
 
     public ResponseEntity<Book> updateBookById(Long id, Book book) {
         return this.bookRepository.findById(id).map(
-          bookToUpdate -> {
-            bookToUpdate.setName(book.getName());
-            bookToUpdate.setCategory(book.getCategory());
-            bookToUpdate.setStatus(book.getStatus());
+                bookToUpdate -> {
+                    bookToUpdate.setName(book.getName());
+                    bookToUpdate.setCategory(book.getCategory());
+                    bookToUpdate.setStatus(book.getStatus());
 
-            Book updated = this.bookRepository.save(bookToUpdate);
+                    Book updated = this.bookRepository.save(bookToUpdate);
 
-            return ResponseEntity.ok().body(updated);
-          }
-        ).orElse(ResponseEntity.notFound().build());
+                    return ResponseEntity.ok().body(updated);
+                }).orElse(ResponseEntity.notFound().build());
+    }
+
+    public ResponseEntity<Object> deleteBookById(Long id) {
+        return this.bookRepository.findById(id).map(bookToDelete -> {
+            this.bookRepository.delete(bookToDelete);
+            return ResponseEntity.noContent().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    public List<Book> listBooksThatStartsWith(String partialName) {
+        return this.bookRepository.findByNameStartingWith(partialName);
     }
 
 }

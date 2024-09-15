@@ -44,4 +44,16 @@ public class BookController {
         return this.bookService.updateBookById(id, book);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Object> deleteBookById(@PathVariable(value = "id") Long id) {
+        return this.bookService.deleteBookById(id);
+    }
+
+    @GetMapping("/partialName")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Book> test(@RequestParam(value = "partialName") String partialName) {
+        return this.bookService.listBooksThatStartsWith(partialName);
+    }
+
 }

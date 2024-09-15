@@ -13,6 +13,8 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BookServiceTest {
+class BookServiceTest {
 
     @Mock
     private BookRepository bookRepository;
@@ -34,17 +36,17 @@ public class BookServiceTest {
 
     @Test
     @DisplayName("Success - Should save book with success")
-    public void shouldSaveBookSuccess() {
+    void shouldSaveBookSuccess() {
         when(this.bookRepository.save(ArgumentMatchers.any(Book.class))).thenReturn(BookFactory.createBook());
         Book created = this.bookService.createBook(BookFactory.createBook());
         assertThat(created.getName()).isSameAs(BookFactory.createBook().getName());
         assertNotNull(created.getId());
-        assertEquals(created.getId(), 1L);
+        assertEquals(1L, created.getId());
     }
 
     @Test
     @DisplayName("Success - Should return the list of books with success")
-    public void shouldReturnListOfBooksWithSuccess() {
+    void shouldReturnListOfBooksWithSuccess() {
         when(this.bookRepository.findAll()).thenReturn(List.of(BookFactory.createBook()));
         List<Book> books = this.bookService.listAllBooks();
         assertEquals(1, books.size());
@@ -52,7 +54,7 @@ public class BookServiceTest {
 
     @Test
     @DisplayName("Success - Should find a book by id with success")
-    public void shouldFindBookByIdWithSuccess() throws BookNotFoundException {
+    void shouldFindBookByIdWithSuccess() throws BookNotFoundException {
         Book book = new Book();
         book.setId(1L);
         book.setName("cracking the code interview");
@@ -73,7 +75,7 @@ public class BookServiceTest {
 
     @Test
     @DisplayName("Error - Should throw exception when try to find book by id")
-    public void shouldThrowExceptionWhenTryToFindBookById() throws BookNotFoundException {
+    void shouldThrowExceptionWhenTryToFindBookById() {
         when(this.bookRepository.findById(2L)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(BookNotFoundException.class, () -> {
@@ -85,8 +87,32 @@ public class BookServiceTest {
 
     @Test
     @DisplayName("Success - Should delete with success")
-    public void shouldDeleteWithSuccess() {
-        
+    void shouldDeleteWithSuccess() {
+        when(this.bookRepository.findById(BookFactory.createBook().getId()))
+                .thenReturn(Optional.empty());
+
+        ResponseEntity<Object> expected = this.bookService.deleteBookById(BookFactory.createBook().getId());
+
+        assertThat(expected.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("Success - Should find a book by partial name")
+    void shouldFindBookByPartialNameWithSuccess() {
+        Book book = new Book();
+        book.setId(1L);
+        book.setName("essencialismo");
+        book.setCategory(Category.SOFT_SKILLS);
+        book.setStatus(Status.IN_PROGRESS);
+
+        when(this.bookRepository.findByNameStartingWith("ess")).thenReturn(List.of(book));
+
+        List<Book> expected = this.bookService.listBooksThatStartsWith("ess");
+        assertThat(expected.get(0).getId()).isEqualTo(book.getId());
+        assertThat(expected.get(0).getName()).isEqualTo(book.getName());
+        assertThat(expected.get(0).getCategory()).isEqualTo(book.getCategory());
+        assertThat(expected.get(0).getStatus()).isEqualTo(book.getStatus());
+        assertThat(expected.get(0).getName()).isNotEqualTo(BookFactory.createBook().getName());
     }
 
 }
